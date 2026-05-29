@@ -1,0 +1,41 @@
+<main [class.dark]="isDark()" class="min-h-screen bg-[var(--app-bg)] text-[var(--app-text)] transition-colors">
+  <header class="border-b border-[var(--app-border)] bg-[var(--app-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-teal-600">Ticket Tool MVP</p>
+        <h1 class="mt-1 text-2xl font-bold sm:text-3xl">Support Ticket System</h1>
+      </div>
+
+      <nav class="flex flex-wrap items-center gap-2">
+        @if (authService.currentUser()) {
+          <a routerLink="/dashboard" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">Dashboard</a>
+          <a routerLink="/raise-ticket" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">Raise Ticket</a>
+          <a routerLink="/my-tickets" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">My Tickets</a>
+          <a routerLink="/assigned-tickets" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">Assigned</a>
+          @if (authService.currentUser()?.roleId === 3) {
+            <a routerLink="/employees" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">Employees</a>
+          }
+          @if (authService.currentUser()?.roleName === 'Admin') {
+            <a routerLink="/master" class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">Master</a>
+          }
+        }
+
+        <button
+          type="button"
+          (click)="toggleTheme()"
+          class="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold text-[var(--app-text)]"
+        >
+          {{ isDark() ? 'Light' : 'Dark' }}
+        </button>
+
+        @if (authService.currentUser()) {
+          <button type="button" (click)="logout()" class="rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white">
+            Logout
+          </button>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <router-outlet />
+</main>

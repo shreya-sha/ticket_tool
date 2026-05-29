@@ -1,0 +1,45 @@
+<section class="mx-auto max-w-7xl px-5 py-6">
+  <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+    <p class="text-sm font-semibold text-teal-600">Dashboard</p>
+    <h2 class="mt-1 text-2xl font-bold">Welcome {{ authService.currentUser()?.employeeName || 'Employee' }}</h2>
+    <p class="mt-1 text-sm text-[var(--app-muted)]">{{ authService.currentUser()?.departmentName }} · {{ authService.currentUser()?.roleName }}</p>
+  </div>
+
+  @if (error()) {
+    <p class="mt-5 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{{ error() }}</p>
+  }
+
+  @if (stats()) {
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Assigned Total</p>
+        <p class="mt-2 text-3xl font-bold">{{ stats()?.assignedTotal }}</p>
+      </div>
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Assigned Open</p>
+        <p class="mt-2 text-3xl font-bold text-amber-600">{{ stats()?.assignedOpen }}</p>
+      </div>
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Assigned Closed</p>
+        <p class="mt-2 text-3xl font-bold text-emerald-600">{{ stats()?.assignedClosed }}</p>
+      </div>
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Raised Total</p>
+        <p class="mt-2 text-3xl font-bold">{{ stats()?.raisedTotal }}</p>
+      </div>
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Raised Open</p>
+        <p class="mt-2 text-3xl font-bold text-indigo-600">{{ stats()?.raisedOpen }}</p>
+      </div>
+      <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+        <p class="text-sm font-semibold text-[var(--app-muted)]">Raised Closed</p>
+        <p class="mt-2 text-3xl font-bold text-teal-600">{{ stats()?.raisedClosed }}</p>
+      </div>
+    </div>
+  }
+
+  <div class="mt-6 flex flex-wrap gap-3">
+    <a routerLink="/raise-ticket" class="rounded-md bg-teal-600 px-4 py-2.5 text-sm font-bold text-white">Raise Ticket</a>
+    <a routerLink="/assigned-tickets" class="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Work Assigned Tickets</a>
+  </div>
+</section>

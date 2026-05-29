@@ -1,0 +1,151 @@
+<section class="mx-auto max-w-7xl px-5 py-6">
+  <form (ngSubmit)="submit()" class="grid gap-5 lg:grid-cols-[420px_1fr]">
+    <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <p class="text-sm font-semibold text-teal-600">Employee</p>
+      <h2 class="mt-1 text-2xl font-bold">Raise Ticket</h2>
+
+      @if (message()) {
+        <p class="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{{ message() }}</p>
+      }
+
+      @if (error()) {
+        <p class="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-800">{{ error() }}</p>
+      }
+
+      <label class="mt-5 block text-sm font-semibold">
+        Department
+        <select
+          name="departmentId"
+          [ngModel]="form().departmentId"
+          (ngModelChange)="departmentChanged(+$event)"
+          class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+        >
+          <option [ngValue]="0">Select department</option>
+          @for (department of departments(); track department.departmentId) {
+            <option [ngValue]="department.departmentId">{{ department.departmentName }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="mt-4 block text-sm font-semibold">
+        Request Type
+        <select
+          name="requestTypeId"
+          [ngModel]="form().requestTypeId"
+          (ngModelChange)="requestTypeChanged(+$event)"
+          class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+        >
+          <option [ngValue]="0">Select request type</option>
+          @for (requestType of requestTypes(); track requestType.requestTypeId) {
+            <option [ngValue]="requestType.requestTypeId">{{ requestType.requestTypeName }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="mt-4 block text-sm font-semibold">
+        Title
+        <input
+          type="text"
+          name="title"
+          [ngModel]="form().title"
+          (ngModelChange)="form.update(value => ({ ...value, title: $event }))"
+          class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+          placeholder="Example: Need laptop for new project"
+        />
+      </label>
+
+      <label class="mt-4 block text-sm font-semibold">
+        Priority
+        <select
+          name="priority"
+          [ngModel]="form().priority"
+          (ngModelChange)="form.update(value => ({ ...value, priority: $event }))"
+          class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+        >
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+          <option>Critical</option>
+        </select>
+      </label>
+
+      <label class="mt-4 block text-sm font-semibold">
+        Description
+        <textarea
+          rows="4"
+          name="description"
+          [ngModel]="form().description"
+          (ngModelChange)="form.update(value => ({ ...value, description: $event }))"
+          class="mt-2 w-full resize-none rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+        ></textarea>
+      </label>
+
+      <button type="submit" [disabled]="isLoading()" class="mt-5 w-full rounded-md bg-teal-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60">
+        {{ isLoading() ? 'Creating...' : 'Submit Ticket' }}
+      </button>
+    </div>
+
+    <div class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+      <p class="text-sm font-semibold text-teal-600">Request Parameters</p>
+      <h2 class="mt-1 text-2xl font-bold">Dynamic Fields</h2>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        @for (field of fields(); track field.requestTypeFieldId) {
+          <label class="block text-sm font-semibold">
+            {{ field.fieldLabel }}
+
+            @if (field.fieldType === 'select') {
+              <select
+                [name]="field.fieldName"
+                [ngModel]="fieldValues()[field.fieldName] || ''"
+                (ngModelChange)="updateFieldValue(field.fieldName, $event)"
+                class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+              >
+                <option value="">Select</option>
+                @for (option of getOptions(field); track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            } @else if (field.fieldType === 'textarea') {
+              <textarea
+                rows="3"
+                [name]="field.fieldName"
+                [ngModel]="fieldValues()[field.fieldName] || ''"
+                (ngModelChange)="updateFieldValue(field.fieldName, $event)"
+                class="mt-2 w-full resize-none rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+              ></textarea>
+            } @else if (field.fieldType === 'radio') {
+              <div class="mt-2 flex flex-wrap gap-2">
+                @for (option of getOptions(field); track option) {
+                  <label class="rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2 text-sm">
+                    <input
+                      type="radio"
+                      [name]="field.fieldName"
+                      [value]="option"
+                      [ngModel]="fieldValues()[field.fieldName] || ''"
+                      (ngModelChange)="updateFieldValue(field.fieldName, $event)"
+                      class="mr-2 accent-teal-600"
+                    />
+                    {{ option }}
+                  </label>
+                }
+              </div>
+            } @else {
+              <input
+                [type]="field.fieldType === 'number' || field.fieldType === 'date' ? field.fieldType : 'text'"
+                [name]="field.fieldName"
+                [ngModel]="fieldValues()[field.fieldName] || ''"
+                (ngModelChange)="updateFieldValue(field.fieldName, $event)"
+                class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+              />
+            }
+          </label>
+        } @empty {
+          <div class="rounded-md bg-[var(--app-panel)] p-5 text-sm text-[var(--app-muted)]">
+            Select department and request type to load request-specific fields.
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+</section>

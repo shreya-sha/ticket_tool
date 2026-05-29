@@ -1,0 +1,425 @@
+<section class="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[280px_1fr]">
+  <aside class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
+    <div class="grid gap-2">
+      <button
+        type="button"
+        (click)="selectTab('departments')"
+        class="rounded-md px-4 py-3 text-left text-sm font-semibold transition"
+        [class.bg-teal-600]="selectedTab() === 'departments'"
+        [class.text-white]="selectedTab() === 'departments'"
+        [class.bg-[var(--app-panel)]]="selectedTab() !== 'departments'"
+      >
+        Departments
+      </button>
+
+      <button
+        type="button"
+        (click)="selectTab('requestTypes')"
+        class="rounded-md px-4 py-3 text-left text-sm font-semibold transition"
+        [class.bg-teal-600]="selectedTab() === 'requestTypes'"
+        [class.text-white]="selectedTab() === 'requestTypes'"
+        [class.bg-[var(--app-panel)]]="selectedTab() !== 'requestTypes'"
+      >
+        Request Forms
+      </button>
+    </div>
+
+    <div class="mt-6 rounded-md bg-[var(--app-panel)] p-4">
+      <p class="text-sm font-semibold">Master Data</p>
+      <p class="mt-1 text-sm text-[var(--app-muted)]">
+        Create departments first, then create request forms and their fields.
+      </p>
+    </div>
+  </aside>
+
+  <div class="grid gap-5">
+    @if (message()) {
+      <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+        {{ message() }}
+      </div>
+    }
+
+    @if (error()) {
+      <div class="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+        {{ error() }}
+      </div>
+    }
+
+    @if (selectedTab() === 'departments') {
+      <section class="grid gap-5 xl:grid-cols-[380px_1fr]">
+        <form
+          (ngSubmit)="saveDepartment()"
+          class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+        >
+          <div>
+            <p class="text-sm font-semibold text-teal-600">
+              {{ editingDepartmentId() ? 'Edit Department' : 'New Department' }}
+            </p>
+            <h2 class="mt-1 text-xl font-bold">Department Details</h2>
+          </div>
+
+          <label class="mt-5 block text-sm font-semibold">
+            Department Name
+            <input
+              type="text"
+              name="departmentName"
+              [ngModel]="departmentForm().departmentName"
+              (ngModelChange)="departmentForm.update(form => ({ ...form, departmentName: $event }))"
+              class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+              placeholder="Example: IT"
+            />
+          </label>
+
+          <label class="mt-4 flex items-center gap-3 rounded-md bg-[var(--app-panel)] px-3 py-3 text-sm font-semibold">
+            <input
+              type="checkbox"
+              name="isActive"
+              [ngModel]="departmentForm().isActive"
+              (ngModelChange)="departmentForm.update(form => ({ ...form, isActive: $event }))"
+              class="h-4 w-4 accent-teal-600"
+            />
+            Active department
+          </label>
+
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button
+              type="submit"
+              class="rounded-md bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60"
+              [disabled]="isLoading()"
+            >
+              {{ editingDepartmentId() ? 'Update' : 'Create' }}
+            </button>
+
+            <button
+              type="button"
+              (click)="resetDepartmentForm()"
+              class="rounded-md border border-[var(--app-border)] px-4 py-2.5 text-sm font-bold"
+            >
+              Clear
+            </button>
+          </div>
+        </form>
+
+        <section class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold text-teal-600">Listing</p>
+              <h2 class="text-xl font-bold">Departments</h2>
+            </div>
+            <span class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">
+              {{ departments().length }} total
+            </span>
+          </div>
+
+          <div class="mt-5 overflow-hidden rounded-md border border-[var(--app-border)]">
+            @for (department of departments(); track department.departmentId) {
+              <div class="grid gap-3 border-b border-[var(--app-border)] p-4 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div>
+                  <p class="font-bold">{{ department.departmentName }}</p>
+                  <p class="mt-1 text-sm text-[var(--app-muted)]">ID: {{ department.departmentId }}</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="rounded-md px-3 py-1 text-xs font-bold"
+                    [class.bg-emerald-100]="department.isActive"
+                    [class.text-emerald-800]="department.isActive"
+                    [class.bg-slate-200]="!department.isActive"
+                    [class.text-slate-700]="!department.isActive"
+                  >
+                    {{ department.isActive ? 'Active' : 'Disabled' }}
+                  </span>
+                  <button type="button" (click)="editDepartment(department)" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-bold text-white">
+                    Edit
+                  </button>
+                  <button type="button" (click)="deleteDepartment(department)" class="rounded-md bg-rose-600 px-3 py-2 text-sm font-bold text-white">
+                    Disable
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <p class="p-5 text-sm text-[var(--app-muted)]">No departments found.</p>
+            }
+          </div>
+        </section>
+      </section>
+    }
+
+    @if (selectedTab() === 'requestTypes') {
+      <section class="grid gap-5">
+        <section class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p class="text-sm font-semibold text-teal-600">Request Form Setup</p>
+          <h2 class="mt-1 text-xl font-bold">One request form can have many fields</h2>
+          <div class="mt-4 grid gap-3 md:grid-cols-3">
+            <div class="rounded-md bg-[var(--app-panel)] p-4">
+              <p class="text-sm font-bold">1. Create form</p>
+              <p class="mt-1 text-sm text-[var(--app-muted)]">Example: Laptop Request.</p>
+            </div>
+            <div class="rounded-md bg-[var(--app-panel)] p-4">
+              <p class="text-sm font-bold">2. Select form</p>
+              <p class="mt-1 text-sm text-[var(--app-muted)]">Click Select on the form you want to configure.</p>
+            </div>
+            <div class="rounded-md bg-[var(--app-panel)] p-4">
+              <p class="text-sm font-bold">3. Add many fields</p>
+              <p class="mt-1 text-sm text-[var(--app-muted)]">Example: RAM, OS, Mouse Type.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-5 xl:grid-cols-[420px_1fr]">
+          <form
+            (ngSubmit)="saveRequestType()"
+            class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+          >
+            <div class="flex items-start gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-md bg-teal-600 text-sm font-bold text-white">1</span>
+              <div>
+                <p class="text-sm font-semibold text-teal-600">
+                  {{ editingRequestTypeId() ? 'Edit request form' : 'Create request form' }}
+                </p>
+                <h2 class="mt-1 text-xl font-bold">Request Form</h2>
+              </div>
+            </div>
+
+            <label class="mt-5 block text-sm font-semibold">
+              Department that will handle this request
+              <select
+                name="departmentId"
+                [ngModel]="requestTypeForm().departmentId"
+                (ngModelChange)="requestTypeForm.update(form => ({ ...form, departmentId: +$event }))"
+                class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+              >
+                <option [ngValue]="0">Select department</option>
+                @for (department of activeDepartments(); track department.departmentId) {
+                  <option [ngValue]="department.departmentId">{{ department.departmentName }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="mt-4 block text-sm font-semibold">
+              Form name shown to employee
+              <input
+                type="text"
+                name="requestTypeName"
+                [ngModel]="requestTypeForm().requestTypeName"
+                (ngModelChange)="requestTypeForm.update(form => ({ ...form, requestTypeName: $event }))"
+                class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                placeholder="Example: Laptop Request"
+              />
+            </label>
+
+            <label class="mt-4 block text-sm font-semibold">
+              Short description
+              <textarea
+                rows="3"
+                name="description"
+                [ngModel]="requestTypeForm().description"
+                (ngModelChange)="requestTypeForm.update(form => ({ ...form, description: $event }))"
+                class="mt-2 w-full resize-none rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                placeholder="Example: Employee can request a laptop configuration"
+              ></textarea>
+            </label>
+
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button type="submit" class="rounded-md bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700">
+                {{ editingRequestTypeId() ? 'Update Form' : 'Create Form' }}
+              </button>
+              <button type="button" (click)="resetRequestTypeForm()" class="rounded-md border border-[var(--app-border)] px-4 py-2.5 text-sm font-bold">
+                Clear
+              </button>
+            </div>
+          </form>
+
+          <section class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+            <div class="flex items-start gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">2</span>
+              <div>
+                <p class="text-sm font-semibold text-teal-600">Select request form</p>
+                <h2 class="mt-1 text-xl font-bold">Existing Forms</h2>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-3">
+              @for (requestType of requestTypes(); track requestType.requestTypeId) {
+                <article
+                  class="rounded-md border border-[var(--app-border)] p-4 transition hover:border-teal-500"
+                  [class.bg-[var(--app-panel)]]="selectedRequestTypeId() === requestType.requestTypeId"
+                >
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <button type="button" (click)="selectRequestType(requestType)" class="text-left">
+                      <p class="font-bold">{{ requestType.requestTypeName }}</p>
+                      <p class="mt-1 text-sm text-[var(--app-muted)]">
+                        {{ requestType.departmentName || 'Department' }} / {{ requestType.description || 'No description' }}
+                      </p>
+                    </button>
+
+                    <div class="flex flex-wrap gap-2">
+                      <button type="button" (click)="selectRequestType(requestType)" class="rounded-md border border-[var(--app-border)] px-3 py-2 text-sm font-bold">
+                        Select
+                      </button>
+                      <button type="button" (click)="editRequestType(requestType)" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-bold text-white">
+                        Edit
+                      </button>
+                      <button type="button" (click)="deleteRequestType(requestType)" class="rounded-md bg-rose-600 px-3 py-2 text-sm font-bold text-white">
+                        Disable
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              } @empty {
+                <p class="rounded-md border border-[var(--app-border)] p-5 text-sm text-[var(--app-muted)]">No request forms found. Create one from step 1.</p>
+              }
+            </div>
+          </section>
+        </section>
+
+        <section class="grid gap-5 xl:grid-cols-[420px_1fr]">
+          <form
+            (ngSubmit)="saveField()"
+            class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+          >
+            <div class="flex items-start gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-md bg-fuchsia-600 text-sm font-bold text-white">3</span>
+              <div>
+                <p class="text-sm font-semibold text-teal-600">Add form field</p>
+                <h2 class="mt-1 text-xl font-bold">Field for selected form</h2>
+                <p class="mt-1 text-sm text-[var(--app-muted)]">
+                  @if (selectedRequestType()) {
+                    Adding field to {{ selectedRequestType()?.requestTypeName }}
+                  } @else {
+                    Select a request form from step 2 first.
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm font-semibold">
+                Field key
+                <input
+                  type="text"
+                  name="fieldName"
+                  [ngModel]="fieldForm().fieldName"
+                  (ngModelChange)="fieldForm.update(form => ({ ...form, fieldName: $event }))"
+                  class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                  placeholder="Example: ram"
+                />
+              </label>
+
+              <label class="block text-sm font-semibold">
+                Label shown to employee
+                <input
+                  type="text"
+                  name="fieldLabel"
+                  [ngModel]="fieldForm().fieldLabel"
+                  (ngModelChange)="fieldForm.update(form => ({ ...form, fieldLabel: $event }))"
+                  class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                  placeholder="Example: RAM"
+                />
+              </label>
+            </div>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm font-semibold">
+                Input type
+                <select
+                  name="fieldType"
+                  [ngModel]="fieldForm().fieldType"
+                  (ngModelChange)="fieldForm.update(form => ({ ...form, fieldType: $event }))"
+                  class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                >
+                  <option value="text">Text box</option>
+                  <option value="textarea">Long text</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="select">Dropdown</option>
+                  <option value="radio">Radio buttons</option>
+                  <option value="checkbox">Checkbox</option>
+                </select>
+              </label>
+
+              <label class="block text-sm font-semibold">
+                Display order
+                <input
+                  type="number"
+                  name="displayOrder"
+                  [ngModel]="fieldForm().displayOrder"
+                  (ngModelChange)="fieldForm.update(form => ({ ...form, displayOrder: +$event }))"
+                  class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                />
+              </label>
+            </div>
+
+            <label class="mt-4 block text-sm font-semibold">
+              Options for dropdown or radio
+              <input
+                type="text"
+                name="fieldOptionsJson"
+                [ngModel]="fieldForm().fieldOptionsJson"
+                (ngModelChange)="fieldForm.update(form => ({ ...form, fieldOptionsJson: $event }))"
+                class="mt-2 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2.5 outline-none ring-teal-500 transition focus:ring-2"
+                placeholder='Example: ["8 GB","16 GB","32 GB"]'
+              />
+            </label>
+
+            <label class="mt-4 flex items-center gap-3 rounded-md bg-[var(--app-panel)] px-3 py-3 text-sm font-semibold">
+              <input
+                type="checkbox"
+                name="fieldRequired"
+                [ngModel]="fieldForm().isRequired"
+                (ngModelChange)="fieldForm.update(form => ({ ...form, isRequired: $event }))"
+                class="h-4 w-4 accent-teal-600"
+              />
+              Employee must fill this field
+            </label>
+
+            <button type="submit" class="mt-5 rounded-md bg-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-fuchsia-700">
+              Add Field
+            </button>
+          </form>
+
+          <section class="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-teal-600">Fields for selected form</p>
+                <h2 class="text-xl font-bold">
+                  {{ selectedRequestType()?.requestTypeName || 'No form selected' }}
+                </h2>
+              </div>
+              <span class="rounded-md bg-[var(--app-panel)] px-3 py-2 text-sm font-semibold">
+                {{ requestTypeFields().length }} fields
+              </span>
+            </div>
+
+            <div class="mt-6 rounded-md bg-[var(--app-panel)] p-4">
+              <h3 class="font-bold">Employee form preview</h3>
+              @if (selectedRequestType()) {
+                <p class="mt-1 text-sm text-[var(--app-muted)]">These fields will appear when an employee raises {{ selectedRequestType()?.requestTypeName }}.</p>
+              } @else {
+                <p class="mt-1 text-sm text-[var(--app-muted)]">Select a request form from step 2 to see its fields.</p>
+              }
+
+              <div class="mt-4 grid gap-2">
+                @for (field of requestTypeFields(); track field.requestTypeFieldId) {
+                  <div class="grid gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] p-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                    <div>
+                      <p class="font-semibold">{{ field.fieldLabel }}</p>
+                      <p class="text-sm text-[var(--app-muted)]">
+                        {{ field.fieldName }} / {{ field.fieldType }} / Order {{ field.displayOrder }}
+                      </p>
+                    </div>
+                    <span class="rounded-md bg-teal-100 px-3 py-1 text-xs font-bold text-teal-800">
+                      {{ field.isRequired ? 'Required' : 'Optional' }}
+                    </span>
+                  </div>
+                } @empty {
+                  <p class="text-sm text-[var(--app-muted)]">No fields added for this request form yet.</p>
+                }
+              </div>
+            </div>
+          </section>
+        </section>
+      </section>
+    }
+  </div>
+</section>
